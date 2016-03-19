@@ -26,12 +26,6 @@ public class AkilliKartFragment extends Fragment {
     @FragmentArg
     String htmlBody;
 
-    @Override
-    public View onCreateView(LayoutInflater inflater, ViewGroup container,
-                             Bundle savedInstanceState) {
-        return null;
-    }
-
     @AfterViews
     void init() {
         webView.getSettings().setJavaScriptEnabled(true);

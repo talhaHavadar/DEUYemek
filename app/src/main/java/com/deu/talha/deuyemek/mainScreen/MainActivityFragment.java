@@ -30,6 +30,7 @@ import com.deu.talha.deuyemek.components.SubButtonContainerView;
 import com.deu.talha.deuyemek.listeners.MenuLoadListener;
 import com.deu.talha.deuyemek.models.Food;
 import com.deu.talha.deuyemek.models.Menu;
+import com.deu.talha.deuyemek.prefs.DEUYemekPrefs;
 import com.deu.talha.deuyemek.prefs.DEUYemekPrefs_;
 import com.orhanobut.dialogplus.DialogPlus;
 import com.orhanobut.dialogplus.ViewHolder;
@@ -152,6 +153,8 @@ public class MainActivityFragment extends Fragment implements MenuLoadListener, 
                 dialog.show();
             }
         }
+        title.setText("Ooops!!");
+        foods.setText("Bir şeyler ters gitti..");
         subButtonContainer.setRightButtonImage(R.mipmap.ic_refresh);
         sbcRightButtonAction = Action.REFRESH;
     }
@@ -206,6 +209,13 @@ public class MainActivityFragment extends Fragment implements MenuLoadListener, 
                 .setContentWidth(RelativeLayout.LayoutParams.WRAP_CONTENT)
                 .setContentBackgroundResource(android.R.color.transparent)
                 .create();
+
+        DEUYemekPrefs_ prefs = getMainActivity().getPrefs();
+
+        etNumber.setText(prefs.username().getOr(""));
+        etPassword.setText(prefs.password().getOr(""));
+        cbRememberMe.setChecked(prefs.akillikartRememberMe().getOr(false));
+
         dialog.show();
         btLogin.setOnClickListener(new View.OnClickListener() {
             @Override
@@ -258,6 +268,16 @@ public class MainActivityFragment extends Fragment implements MenuLoadListener, 
                                                 .put(true)
                                                 .apply();
 
+                                    } else {
+                                        DEUYemekPrefs_ prefs = getMainActivity().getPrefs();
+                                        prefs.edit()
+                                                .username()
+                                                .put("")
+                                                .password()
+                                                .put("")
+                                                .akillikartRememberMe()
+                                                .put(false)
+                                                .apply();
                                     }
                                     dialog.dismiss();
                                     getMainActivity().openFragment(AkilliKartFragment.class, balanceResponse.htmlResponse);
