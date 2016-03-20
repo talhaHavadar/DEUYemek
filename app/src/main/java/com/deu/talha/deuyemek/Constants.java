@@ -3,13 +3,17 @@ package com.deu.talha.deuyemek;
 import android.content.Context;
 import android.graphics.drawable.Drawable;
 import android.support.annotation.Nullable;
+import android.text.TextUtils;
 import android.util.Log;
 import android.view.View;
+import android.widget.Toast;
 
 import com.daimajia.androidanimations.library.Techniques;
 import com.daimajia.androidanimations.library.YoYo;
 import com.deu.talha.deuyemek.models.Food;
 import com.deu.talha.deuyemek.models.Menu;
+import com.deu.talha.deuyemek.ogeb.DeuFeedBack;
+import com.deu.talha.deuyemek.ogeb.DeuFeedBackData;
 import com.nineoldandroids.animation.Animator;
 
 import org.androidannotations.annotations.EBean;
@@ -81,6 +85,56 @@ public class Constants {
         dialog.setContentText("Not implemented yet!!");
         dialog.setCancelable(true);
         dialog.show();
+    }
+
+    public static DeuFeedBackData checkOgebParameters(Context context, String notificationType, String status, String name, String surname,
+                                              String email, String subject, String body) {
+        if (TextUtils.isEmpty(notificationType) || notificationType.equals("Seçiniz..")) {
+            Toast.makeText(context, "Lütfen bildirim türünü seçiniz..", Toast.LENGTH_SHORT).show();
+            return null;
+        } else if (TextUtils.isEmpty(status) || status.equals("Seçiniz..")) {
+            Toast.makeText(context, "Lütfen durumunuzu seçiniz..", Toast.LENGTH_SHORT).show();
+            return null;
+        } else if (TextUtils.isEmpty(name.trim())) {
+            Toast.makeText(context, "Lütfen adınızı yazınız..", Toast.LENGTH_SHORT).show();
+            return null;
+        } else if (TextUtils.isEmpty(surname.trim())) {
+            Toast.makeText(context, "Lütfen soyadınızı yazınız..", Toast.LENGTH_SHORT).show();
+            return null;
+        } else if (TextUtils.isEmpty(email.trim())) {
+            Toast.makeText(context, "Lütfen emailinizi yazınız..", Toast.LENGTH_SHORT).show();
+            return null;
+        } else if (TextUtils.isEmpty(subject.trim())) {
+            Toast.makeText(context, "Lütfen konuyu yazınız..", Toast.LENGTH_SHORT).show();
+            return null;
+        } else if (TextUtils.isEmpty(body.trim())) {
+            Toast.makeText(context, "Lütfen mesajınızı yazınız..", Toast.LENGTH_SHORT).show();
+            return null;
+        }
+
+        DeuFeedBackData data = new DeuFeedBackData();
+        if (notificationType.equalsIgnoreCase("Memnuniyet")) {
+            data.category = DeuFeedBack.kategoriler.Memnuniyet;
+        } else if (notificationType.equalsIgnoreCase("Eleştiri")) {
+            data.category = DeuFeedBack.kategoriler.Elestiri;
+        } else if (notificationType.equalsIgnoreCase("Öneri")) {
+            data.category = DeuFeedBack.kategoriler.Oneri;
+        }
+        if (status.equalsIgnoreCase("Akademisyen")) {
+            data.status = DeuFeedBack.durumlar.Akademisyen;
+        } else if (status.equalsIgnoreCase("İdari personel")) {
+            data.status = DeuFeedBack.durumlar.IdariPersonel;
+        } else if (status.equalsIgnoreCase("Öğrenci")) {
+            data.status = DeuFeedBack.durumlar.Ogrenci;
+        } else if (status.equalsIgnoreCase("Diğer")) {
+            data.status = DeuFeedBack.durumlar.Diger;
+        }
+        data.name = name;
+        data.surname = surname;
+        data.email = email;
+        data.subject = subject;
+        data.message = body;
+        return data;
     }
 
     public static void showPopupView(View rootView, View popupView, @Nullable Techniques tech) {

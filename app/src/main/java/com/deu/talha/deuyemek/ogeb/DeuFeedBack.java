@@ -1,5 +1,11 @@
 package com.deu.talha.deuyemek.ogeb;
 
+import android.util.Log;
+
+import com.deu.talha.deuyemek.app.App;
+import com.google.gson.Gson;
+import com.google.gson.GsonBuilder;
+
 import java.io.BufferedReader;
 import java.io.DataOutputStream;
 import java.io.InputStreamReader;
@@ -7,21 +13,32 @@ import java.net.HttpURLConnection;
 import java.net.URL;
 import java.net.URLEncoder;
 
+import retrofit2.Callback;
+import retrofit2.GsonConverterFactory;
+import retrofit2.Response;
+import retrofit2.Retrofit;
+import retrofit2.RxJavaCallAdapterFactory;
+import rx.Subscriber;
+import rx.android.schedulers.AndroidSchedulers;
+import rx.schedulers.Schedulers;
+
 /**
  * Created by talha on 3.3.2015.
  */
 public class DeuFeedBack {
 
+    private static final String TAG = "DeuFeedBack";
+    private static Retrofit retrofit;
     private static final String POST_URL = "http://www.deu.edu.tr/DEUWeb/Icerik/gonder_ogeb.php";
     ///////////////////Form Elements/////////////////////////////////////////////////////////////
-    private final String KATEGORI = "kategori";
-    private final String GRUP = "grup";
-    private final String BIRIMLER = "birimler";
-    private final String AD = "ad";
-    private final String SOYAD = "soyad";
-    private final String MAIL = "mail";
-    private final String KONU = "konu";
-    private final String MESAJ = "mesaj";
+    private static final String KATEGORI = "kategori";
+    private static final String GRUP = "grup";
+    private static final String BIRIMLER = "birimler";
+    private static final String AD = "ad";
+    private static final String SOYAD = "soyad";
+    private static final String MAIL = "mail";
+    private static final String KONU = "konu";
+    private static final String MESAJ = "mesaj";
     ////////////////////////////////////////////////////////////////////////////////////////////
     //######Enums######
 
@@ -35,12 +52,29 @@ public class DeuFeedBack {
     }
     //#################
 
-    public void sendPost(String ad,String soyad,
-                         String mail,String konu,
-                         String mesaj,kategoriler kategoriEnum,
-                         durumlar durumEnum) throws Exception {
-        URL webUrl = new URL(POST_URL);
-        HttpURLConnection conn = (HttpURLConnection) webUrl.openConnection();
+
+    public static Retrofit getRetrofit() {
+        if (retrofit == null) {
+            Gson gson = new GsonBuilder()
+                    .create();
+            retrofit = new Retrofit.Builder()
+                    .baseUrl("http://www.deu.edu.tr")
+                    .addConverterFactory(GsonConverterFactory.create(gson))
+                    .addCallAdapterFactory(RxJavaCallAdapterFactory.create())
+                    .build();
+        }
+        return retrofit;
+    }
+
+    public static void sendPost(DeuFeedBackData data) {
+        kategoriler kategoriEnum = data.category;
+        durumlar durumEnum = data.status;
+        String ad = data.name.trim();
+        String soyad = data.surname.trim();
+        String mail = data.email.trim();
+        String konu = data.subject.trim();
+        String mesaj = data.message.trim();
+
         String kategori = "";
         if (kategoriEnum == kategoriler.Elestiri) {
             kategori = "Elestiri";
@@ -59,48 +93,27 @@ public class DeuFeedBack {
         } else if (durumlar.Diger == durumEnum) {
             grup = "Diğer";
         }
-        String postParams = KATEGORI + "=" + URLEncoder.encode(kategori, "UTF-8") + "&" +
-                GRUP + "=" + URLEncoder.encode(grup, "UTF-8") + "&" + BIRIMLER +"=0&"+
-                AD +"=" + URLEncoder.encode(ad, "UTF-8")+ "&" + SOYAD +"="+URLEncoder.encode(soyad, "UTF-8")
-                + "&" + MAIL +"="+URLEncoder.encode(mail, "UTF-8") + "&" + KONU +"=" +
-                URLEncoder.encode(konu, "UTF-8") +"&" + MESAJ +"=" + URLEncoder.encode(mesaj, "UTF-8");
 
+        OgebApi api = getRetrofit().create(OgebApi.class);
+        api.post(kategori, grup, 0,
+                ad, soyad, mail, konu, mesaj)
+                .enqueue(new Callback<Void>() {
+                    @Override
+                    public void onResponse(Response<Void> response) {
 
-        conn.setUseCaches(false);
-        conn.setRequestMethod("POST");
+                        DeuFeedBackResponse res = new DeuFeedBackResponse();
+                        res.success = response.isSuccess();
+                        App.getEventBus().send(res);
+                    }
 
-        conn.setRequestProperty("Host", "www.deu.edu.tr");
-        conn.setRequestProperty("User-Agent", "Mozilla/5.0");
-        conn.setRequestProperty("Accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,*/*;q=0.8");
-        conn.setRequestProperty("Accept-Language", "tr-TR,tr;q=0.8,en-US;q=0.6,en;q=0.4");
-
-
-        conn.setRequestProperty("Connection", "keep-alive");
-        conn.setRequestProperty("Referer", "http://www.deu.edu.tr/DEUWeb/Icerik/Icerik.php?KOD=14757");
-        conn.setRequestProperty("Content-Type", "application/x-www-form-urlencoded");
-        conn.setRequestProperty("Content-Length", Integer.toString(postParams.length()));
-        conn.setDoOutput(true);
-        conn.setDoInput(true);
-
-        DataOutputStream wr = new DataOutputStream(conn.getOutputStream());
-        wr.writeBytes(postParams);
-        wr.flush();
-        wr.close();
-
-        int responseCode = conn.getResponseCode();
-        System.out.println("\nSending 'POST' request to URL : " + POST_URL);
-        System.out.println("Post parameters : " + postParams);
-        System.out.println("Response Code : " + responseCode);
-
-        BufferedReader in =
-                new BufferedReader(new InputStreamReader(conn.getInputStream()));
-        String inputLine;
-        StringBuffer response = new StringBuffer();
-
-        while ((inputLine = in.readLine()) != null) {
-            response.append(inputLine);
-        }
-        in.close();
+                    @Override
+                    public void onFailure(Throwable t) {
+                        Log.d(TAG, "onFailure: " + t.getMessage());
+                        DeuFeedBackResponse res = new DeuFeedBackResponse();
+                        res.success = false;
+                        App.getEventBus().send(res);
+                    }
+                });
     }
 
 

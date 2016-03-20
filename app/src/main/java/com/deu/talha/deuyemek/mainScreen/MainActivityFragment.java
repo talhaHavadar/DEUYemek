@@ -8,6 +8,7 @@ import android.support.v4.app.Fragment;
 import android.os.Bundle;
 import android.support.v7.graphics.Palette;
 import android.text.TextUtils;
+import android.util.Log;
 import android.view.Gravity;
 import android.view.LayoutInflater;
 import android.view.View;
@@ -18,7 +19,9 @@ import android.widget.ImageButton;
 import android.widget.ImageView;
 import android.widget.LinearLayout;
 import android.widget.RelativeLayout;
+import android.widget.Spinner;
 import android.widget.TextView;
+import android.widget.Toast;
 
 import com.deu.talha.deuyemek.Constants;
 import com.deu.talha.deuyemek.R;
@@ -30,6 +33,9 @@ import com.deu.talha.deuyemek.components.SubButtonContainerView;
 import com.deu.talha.deuyemek.listeners.MenuLoadListener;
 import com.deu.talha.deuyemek.models.Food;
 import com.deu.talha.deuyemek.models.Menu;
+import com.deu.talha.deuyemek.ogeb.DeuFeedBack;
+import com.deu.talha.deuyemek.ogeb.DeuFeedBackData;
+import com.deu.talha.deuyemek.ogeb.DeuFeedBackResponse;
 import com.deu.talha.deuyemek.prefs.DEUYemekPrefs;
 import com.deu.talha.deuyemek.prefs.DEUYemekPrefs_;
 import com.orhanobut.dialogplus.DialogPlus;
@@ -47,6 +53,7 @@ import java.util.Random;
 import cn.pedant.SweetAlert.SweetAlertDialog;
 import rx.Subscriber;
 import rx.android.schedulers.AndroidSchedulers;
+import rx.functions.Action1;
 import rx.schedulers.Schedulers;
 
 /**
@@ -106,6 +113,21 @@ public class MainActivityFragment extends Fragment implements MenuLoadListener, 
 
         setBackPhoto();
         colorizeBack();
+
+        App.getEventBus().toObservable()
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Action1<Object>() {
+                    @Override
+                    public void call(Object o) {
+                        if (o instanceof DeuFeedBackResponse) {
+                            if (((DeuFeedBackResponse) o).success) {
+                                Toast.makeText(getContext(), "Mesajınız gönderildi!!", Toast.LENGTH_LONG).show();
+                            } else {
+                                Toast.makeText(getContext(), "Bir şeyler ters gitti lutfen tekrar deneyin!!", Toast.LENGTH_LONG).show();
+                            }
+                        }
+                    }
+                });
     }
 
 
@@ -298,7 +320,37 @@ public class MainActivityFragment extends Fragment implements MenuLoadListener, 
                 break;
             case OGEB:
                 // Do ogeb stuff
-                Constants.notImplementedYet(getContext());
+                View ogebLayout = LayoutInflater.from(getContext()).inflate(R.layout.layout_ogeb, null);
+                final EditText etName = (EditText) ogebLayout.findViewById(R.id.etName);
+                final EditText etSurname = (EditText) ogebLayout.findViewById(R.id.etSurname);
+                final EditText etEmail = (EditText) ogebLayout.findViewById(R.id.etEmail);
+                final EditText etSubject = (EditText) ogebLayout.findViewById(R.id.etSubject);
+                final EditText etBody = (EditText) ogebLayout.findViewById(R.id.etBody);
+                final Spinner spnStatus = (Spinner) ogebLayout.findViewById(R.id.spnStatus);
+                final Spinner spnNotification = (Spinner) ogebLayout.findViewById(R.id.spnNotificationType);
+                Button btSend = (Button) ogebLayout.findViewById(R.id.btSend);
+                final DialogPlus dialog = DialogPlus.newDialog(getContext())
+                        .setContentHolder(new ViewHolder(ogebLayout))
+                        .setGravity(Gravity.CENTER)
+                        .setContentHeight(RelativeLayout.LayoutParams.WRAP_CONTENT)
+                        .setContentWidth(RelativeLayout.LayoutParams.WRAP_CONTENT)
+                        .setContentBackgroundResource(android.R.color.transparent)
+                        .create();
+                dialog.show();
+
+                btSend.setOnClickListener(new View.OnClickListener() {
+                    @Override
+                    public void onClick(View v) {
+                        DeuFeedBackData data = Constants.checkOgebParameters(getContext(),spnNotification.getSelectedItem().toString()
+                                , spnStatus.getSelectedItem().toString(), etName.getText().toString(), etSurname.getText().toString(),
+                                etEmail.getText().toString(),etSubject.getText().toString(), etBody.getText().toString());
+                        if (data != null) {
+                            DeuFeedBack.sendPost(data);
+                            dialog.dismiss();
+                        }
+                    }
+                });
+
                 break;
         }
     }

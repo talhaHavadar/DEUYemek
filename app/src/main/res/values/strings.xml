@@ -23,7 +23,6 @@
     <string name="save_contains_error">Bu menü zaten kayıtlı..</string>
     <string name="save_contains_success">Menu kaydedildi artık internet olmadanda görüntüleyebilirsiniz.</string>
     <string name="no_saved_message">Kayıtlı bir menü bulunmamaktadır.</string>
-    <string name="deu_feedback_prompt">Seçiniz..</string>
     <string name="ogeb_title">DEU Geribildirim (OGEB)</string>
     <string name="cancel">İptal</string>
     <string name="send">Gönder</string>
@@ -34,10 +33,17 @@
     <string name="application">DEU Yemek</string>
     <string name="info_message">Uygulama ile ilgili görüş ve önerilerinizi \n scorptechdev@gmail.com \n adresinden bize ulaştırabilirsiniz. Eğer uygulamada sizinde bir payınız olsun istiyorsanız 350x200 piksel boyutundaki fotoğrafları tekrar yukarıdaki mail adresinden bize ulaştırabilirsiniz.</string>
     <string-array name="deu_feedback_durumlar">
+        <item>Seçiniz..</item>
         <item>Akademisyen</item>
         <item>İdari personel</item>
         <item>Öğrenci</item>
         <item>Diğer</item>
+    </string-array>
+    <string-array name="deu_feedback_notification_type">
+        <item>Seçiniz..</item>
+        <item>Memnuniyet</item>
+        <item>Eleştiri</item>
+        <item>Öneri</item>
     </string-array>
     <string name="title_activity_main">DEU Yemek</string>
     <string name="notifications_button_text">Duyurular</string>
@@ -51,4 +57,12 @@
     <!-- TODO: Remove or change this placeholder text -->
     <string name="hello_blank_fragment">Hello blank fragment</string>
     <string name="akilli_kart_button">Bakiye Sorgula</string>
+    <string name="notification_type_subtitle">Bildirim Türü</string>
+    <string name="deu_feedback_status_subtitle">Durumunuz</string>
+    <string name="deu_feedback_name_hint">Adınız</string>
+    <string name="deu_feedback_surname_hint">Soyadınız</string>
+    <string name="deu_feedback_email_hint">Email</string>
+    <string name="deu_feedback_subject_hint">Konu</string>
+    <string name="deu_feedback_body_hint">Mesajınız</string>
+    <string name="deu_feedback_submit_button">Gönder</string>
 </resources>
